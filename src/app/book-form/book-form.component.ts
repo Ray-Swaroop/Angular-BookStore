@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Book } from "../book/book";
 import { BookService } from "../book/book.service";
 import { Router } from '@angular/router';
+import { Observable, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-book-form',
@@ -12,11 +13,46 @@ import { Router } from '@angular/router';
 export class BookFormComponent implements OnInit {
 
 	private books: Book[];
+	public bookName = '';
+	public flag: boolean = true;
+	public bookss: Observable<any[]>;  
+	private searchTerms = new Subject<string>(); 
 	constructor(private router: Router,
 	private bookService: BookService) { }
 	ngOnInit() {
-	   this.getAllbooks();
-	   }
+		   this.bookss = this.searchTerms  
+		  .debounceTime(300)        // wait for 300ms pause in events  
+		  
+		  .distinctUntilChanged()   // ignore if next search term is same as previous  
+		  
+		  .switchMap(term => term   // switch to new observable each time  
+		  
+			// return the http search observable  
+			? this.bookService.searchBook(term)  
+			
+			// or the observable of empty heroes if no search term  
+			: Observable.of<any[]>([]))  
+		  .catch(error => {  
+			// TODO: real error handling  
+			console.log(error);  
+			return Observable.of<any[]>([]);  
+		  });  
+		}
+		
+		searchClient(term: string): void {  
+			this.flag = true;  
+			this.searchTerms.next(term);  
+		}
+		
+		onselectClient(BookObj) {     
+			if (BookObj.bookId != 0) {  
+			  this.bookName = BookObj.bookName;       
+			  this.flag = false;  
+			}  
+			else {  
+			  return false;  
+			}  
+		} 
 	  getAllbooks() {
 		   this.bookService.findAll().then(
 			   books => {
@@ -38,6 +74,18 @@ export class BookFormComponent implements OnInit {
 			   }
 		  );
 	  }
+	  
+	  searchbook(name:string){
+		this.bookService.searchBook(name).then(
+			   books => {
+			   this.books = books;
+			   },
+			   err => {
+			   console.log(err);
+			   }
+		  );
+	  }
+	  
 	  createbook() {
 		   /*let firstName = (<HTMLInputElement>document.getElementById('firstName')).value;
 		   let phoneNo = (<HTMLInputElement>document.getElementById('phoneNo')).value;

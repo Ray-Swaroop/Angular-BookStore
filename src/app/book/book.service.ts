@@ -26,6 +26,14 @@ export class BookService {
 	   .catch(this.handleError);
 	}
 	
+	searchBook(name:string):Promise<Array<Book>>{
+		const url = `${this.apiUrl}/bookName/${name}`;
+		return this.http.get(url)
+	   .toPromise()
+	   .then(response => response.json() as Book[])
+	   .catch(this.handleError);
+	}
+	
 	createBook(book:Book):Promise<Array<Book>>{
 		const bookHeaders = new Headers({ 'Content-Type': 'application/json' });
 		return this.http.post(this.apiUrl, JSON.stringify(book), { headers: bookHeaders })

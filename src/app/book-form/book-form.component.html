@@ -1,5 +1,11 @@
 <div>
-	<input type="text" id="keyword" placeholder="Search for books..." [(ngModel)]="BookId" autofocus/> <br> <br>
-	<input type="submit" value="Search" (click)="getBookName(BookId)">
-	
+	<input *ngIf="flag" type="text" [(ngModel)]="bookName" (keyup)="searchbook(bookName)"/> <br> <br>
+	<input [(ngModel)]="bookName" disabled *ngIf="!flag" type="text"/> <br> <br>
+</div>
+<div class="search-result" *ngIf="flag">  
+	<ul>  
+		<li *ngFor="let client of clients | async">  
+			<a (click)="onselectClient(client)">{{client.bookName}}</a>  
+		</li>             
+	</ul>  
 </div>
