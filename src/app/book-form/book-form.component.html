@@ -1,11 +1,8 @@
-<div>
-	<input *ngIf="flag" type="text" [(ngModel)]="bookName" (keyup)="searchbook(bookName)"/> <br> <br>
-	<input [(ngModel)]="bookName" disabled *ngIf="!flag" type="text"/> <br> <br>
-</div>
-<div class="search-result" *ngIf="flag">  
-	<ul>  
-		<li *ngFor="let client of clients | async">  
-			<a (click)="onselectClient(client)">{{client.bookName}}</a>  
+<div align="center">
+	<input #searchBox id="search-box" (keyup)="searchbook(searchBox.value)" />
+	<ul class="search-result">
+		<li *ngFor="let book of books">  
+			<a routerLink="bookName/{{book}}">{{book}}</a>
 		</li>             
 	</ul>  
 </div>

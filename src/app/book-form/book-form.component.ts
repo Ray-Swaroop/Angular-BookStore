@@ -3,6 +3,9 @@ import { Book } from "../book/book";
 import { BookService } from "../book/book.service";
 import { Router } from '@angular/router';
 import { Observable, Subject } from 'rxjs';
+import {
+   debounceTime, distinctUntilChanged, switchMap
+ } from 'rxjs/operators';
 
 @Component({
   selector: 'app-book-form',
@@ -13,46 +16,30 @@ import { Observable, Subject } from 'rxjs';
 export class BookFormComponent implements OnInit {
 
 	private books: Book[];
-	public bookName = '';
-	public flag: boolean = true;
-	public bookss: Observable<any[]>;  
+	
+	books$: Observable<Book[]>;	
 	private searchTerms = new Subject<string>(); 
-	constructor(private router: Router,
-	private bookService: BookService) { }
-	ngOnInit() {
-		   this.bookss = this.searchTerms  
-		  .debounceTime(300)        // wait for 300ms pause in events  
-		  
-		  .distinctUntilChanged()   // ignore if next search term is same as previous  
-		  
-		  .switchMap(term => term   // switch to new observable each time  
-		  
-			// return the http search observable  
-			? this.bookService.searchBook(term)  
-			
-			// or the observable of empty heroes if no search term  
-			: Observable.of<any[]>([]))  
-		  .catch(error => {  
-			// TODO: real error handling  
-			console.log(error);  
-			return Observable.of<any[]>([]);  
-		  });  
+	
+	constructor(private bookService: BookService) { }
+	
+		// Push a search term into the observable stream.
+		search(term: string): void {
+			this.searchTerms.next(term);
 		}
 		
-		searchClient(term: string): void {  
-			this.flag = true;  
-			this.searchTerms.next(term);  
+		ngOnInit(): void {
+			this.books$ = this.searchTerms.pipe(
+			  // wait 300ms after each keystroke before considering the term
+			  debounceTime(300),
+
+			  // ignore new term if same as previous term
+			  distinctUntilChanged(),
+
+			  // switch to new search observable each time the term changes
+			  switchMap((term: string) => this.bookService.searchBookFilter(term)),
+			);
 		}
 		
-		onselectClient(BookObj) {     
-			if (BookObj.bookId != 0) {  
-			  this.bookName = BookObj.bookName;       
-			  this.flag = false;  
-			}  
-			else {  
-			  return false;  
-			}  
-		} 
 	  getAllbooks() {
 		   this.bookService.findAll().then(
 			   books => {
